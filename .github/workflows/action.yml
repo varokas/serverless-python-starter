@@ -24,6 +24,8 @@ jobs:
       run: npm install 
     - name: Install Python Packages
       run: pip install -r requirements.txt
+    - name: Test
+      run: pytest
     - name: Serverless deploy
       run: npx serverless deploy
       env:
