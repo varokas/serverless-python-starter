@@ -1,0 +1,31 @@
+name: Deploy main branch
+
+on:
+  push:
+    branches: ["master", "main"]
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js 12
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+        architecture: x64
+    - name: Remove profile from serverless.yml
+      run: "sed -i '/profile:/d' serverless.yml"
+    - name: Install NPM Packages
+      run: npm install 
+    - name: Install Python Packages
+      run: pip install -r requirements.txt
+    - name: Serverless deploy
+      run: npx serverless deploy
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

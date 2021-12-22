@@ -1,0 +1,99 @@
+service: serverless-python-starter
+
+package:
+  individually: true
+
+provider:
+  name: aws
+  profile: varokas # Change to a profile name
+  runtime: python3.9
+  memorySize: 128
+  timeout: 10
+  region: us-west-2
+  stage: ${opt:stage, "staging"}
+  lambdaHashingVersion: 20201221
+  # # -- IAM Roles Example for DynamoDB & S3 bucket access
+  # iamRoleStatements: [
+  # {
+  #   Effect: "Allow",
+  #   Action: ["s3:GetObject","s3:GetObjectVersion","s3:PutObject","s3:PutObjectAcl","s3:ListBucket"],
+  #   Resource: [
+  #     "arn:aws:s3:::bucketname",
+  #     "arn:aws:s3:::bucketname/*"
+  #   ]
+  # }
+  # ],
+  # iam: {
+  #   role: {
+  #     managedPolicies: [
+  #       "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess" # TODO -- better refined policy than full access
+  #     ]
+  #   }
+  # }
+plugins:
+  - serverless-python-requirements
+custom:
+  pythonRequirements:
+    dockerizePip: false # Or -- non-linux if we are using non-pure python libs
+    layer:    
+      name: serverless-python-starter-layer
+      description: Starter Layer
+      compatibleRuntimes:
+        - python3.9
+
+functions:
+  app:
+    package:
+      exclude:
+        - "requirements.txt"
+        - "package.json"
+        - "package-lock.json"
+        - ".serverless/**"
+        - ".venv/**"
+        - "node_modules/**"
+        - "__pycache__/**"
+        - "**/__pycache__/**"
+        - "pulumi-example/**"
+    handler: main.handler
+    environment:
+      STAGE: ${self:provider.stage}
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    # # Uncomment HTTP Events to enable API Gateway
+    # events:
+    #   - http:
+    #       method: any
+    #       path: /{proxy+}
+    #   - http:
+    #       method: any
+    #       path: /
+  backend:
+    package:
+      exclude:
+        - "requirements.txt"
+        - "package.json"
+        - "package-lock.json"
+        - ".serverless/**"
+        - ".venv/**"
+        - "node_modules/**"
+        - "__pycache__/**"
+        - "**/__pycache__/**"
+        - "pulumi-example/**"
+    handler: backend.handler
+    environment:
+      STAGE: ${self:provider.stage}
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    events:
+      - schedule:
+          rate:
+            - cron(0 15 * * ? *)  # https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html
+            - rate(2 hours)
+          inputTransformer:
+            inputPathsMap:
+              eventTime: '$.time'
+            inputTemplate: '{"name":"TestEvent", "time":<eventTime>, "source":"schedule"}'
+      - sqs:
+          arn: "arn:aws:sqs:us-west-2:820792572713:serverless-python-starter-events"
+          batchSize: 1
+

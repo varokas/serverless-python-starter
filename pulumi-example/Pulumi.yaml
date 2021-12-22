@@ -1,0 +1,3 @@
+name: serverless-python-starter
+runtime: nodejs
+description: Serverless Python Starter
