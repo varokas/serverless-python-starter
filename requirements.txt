@@ -2,3 +2,4 @@ fastapi==0.70.1
 mangum==0.12.3
 uvicorn==0.16.0
 aws-lambda-powertools==1.23.0
+pytest==6.2.5
