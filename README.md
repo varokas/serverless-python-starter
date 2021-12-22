@@ -13,7 +13,7 @@ Starter project for python based lambda project.
 - [X] Pulumi Example 
 - [X] Shared Lib between Frontend and Backend
 - [X] PyTest
-- [] Deploy via Github Action
+- [X] Deploy via Github Action
 
 ## Prerequisite
 * Python 3.9
